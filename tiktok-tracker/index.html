@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TikTok View Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Lexend:wght@400;500;600&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#0a0b10;--panel:#13151f;--panel-2:#191c29;--line:#262a3b;
+  --text:#e9ecf5;--muted:#8a90a6;--accent:#25f4ee;--accent-2:#fe2c55;
+  --gold:#ffce45;--silver:#cfd6e6;--bronze:#e08b4c;--green:#37d67a;
+  --shadow:0 12px 40px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:"Lexend",sans-serif;background:var(--bg);color:var(--text);line-height:1.5;
+  padding:24px clamp(16px,4vw,48px) 64px;min-height:100vh;position:relative;overflow-x:hidden}
+.bg-grid{position:fixed;inset:0;z-index:-2;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:56px 56px;opacity:.10;mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 30%,transparent 80%)}
+.bg-glow{position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:900px;height:500px;z-index:-1;background:radial-gradient(circle,rgba(37,244,238,.16),transparent 60%),radial-gradient(circle at 70% 50%,rgba(254,44,85,.12),transparent 60%);filter:blur(20px);pointer-events:none}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:26px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:20px;color:#04121a;font-weight:700;background:linear-gradient(135deg,var(--accent),#0fd1cb);box-shadow:0 0 24px rgba(37,244,238,.4)}
+h1{font-family:"Sora",sans-serif;font-size:24px;letter-spacing:-.5px;font-weight:800}
+.sub{color:var(--muted);font-size:13px}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.mode-badge{font-size:11px;font-weight:700;letter-spacing:.5px;padding:6px 11px;border-radius:999px;border:1px solid var(--line)}
+.mode-badge.demo{color:var(--gold);border-color:rgba(255,206,69,.4);background:rgba(255,206,69,.08)}
+.mode-badge.live{color:var(--green);border-color:rgba(55,214,122,.4);background:rgba(55,214,122,.1)}
+.auto-pill{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:var(--panel)}
+.auto-pill b{color:var(--accent)}
+.icon-btn{width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:17px;cursor:pointer;transition:.15s}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.stat-card{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line);border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow)}
+.stat-card.viral{border-color:rgba(254,44,85,.35)}
+.stat-label{font-size:12px;color:var(--muted)}
+.stat-value{font-family:"Sora",sans-serif;font-size:28px;font-weight:800;letter-spacing:-1px}
+.stat-value.sm{font-size:15px;font-weight:600;font-family:"Lexend",sans-serif}
+.stat-card.viral .stat-value{color:var(--accent-2)}
+
+.toolbar{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+.add-row,.actions-row{display:flex;gap:10px;flex-wrap:wrap}
+.input-wrap{flex:1;min-width:240px;display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:0 14px;transition:.15s}
+.input-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,244,238,.12)}
+.at{color:var(--muted);font-weight:600}
+.input-wrap input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:15px;padding:13px 0;font-family:inherit}
+.search,.select{background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--text);padding:12px 14px;font-size:14px;font-family:inherit;outline:none}
+.search{flex:1;min-width:200px}
+.search:focus,.select:focus{border-color:var(--accent)}
+.select{cursor:pointer}
+.btn{border:none;border-radius:12px;padding:12px 18px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;white-space:nowrap}
+.btn.primary{background:var(--accent);color:#04121a}
+.btn.primary:hover{box-shadow:0 0 20px rgba(37,244,238,.45);transform:translateY(-1px)}
+.btn.accent{background:linear-gradient(135deg,var(--accent-2),#ff5277);color:#fff}
+.btn.accent:hover{box-shadow:0 0 20px rgba(254,44,85,.45);transform:translateY(-1px)}
+.btn.ghost{background:var(--panel);color:var(--text);border:1px solid var(--line)}
+.btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+.progress{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.progress-bar{flex:1;height:8px;background:var(--panel);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.progress-bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .2s}
+.progress-text{font-size:13px;color:var(--muted);min-width:150px;text-align:right}
+
+.table-wrap{background:var(--panel);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)}
+.grid{width:100%;border-collapse:collapse;font-size:14px}
+.grid thead th{text-align:left;padding:15px 16px;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.3px;background:var(--panel-2);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:2}
+.grid th.num,.grid td.num{text-align:right;font-variant-numeric:tabular-nums}
+.col-num{width:56px;text-align:center !important}
+.col-act{width:120px;text-align:center !important}
+.grid tbody tr{border-bottom:1px solid var(--line);transition:background .12s}
+.grid tbody tr:last-child{border-bottom:none}
+.grid tbody tr:hover{background:rgba(255,255,255,.025)}
+.grid tbody tr.viral-row{background:rgba(254,44,85,.06)}
+.grid td{padding:13px 16px;vertical-align:middle}
+.rank{text-align:center}
+.rank-badge{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;font-family:"Space Mono",monospace;font-size:13px;font-weight:700;color:var(--muted);border:1px solid var(--line)}
+.rank-badge.r1{background:rgba(255,206,69,.15);color:var(--gold);border-color:var(--gold)}
+.rank-badge.r2{background:rgba(207,214,230,.12);color:var(--silver);border-color:var(--silver)}
+.rank-badge.r3{background:rgba(224,139,76,.14);color:var(--bronze);border-color:var(--bronze)}
+
+.acct{display:flex;align-items:center;gap:11px}
+.avatar{width:40px;height:40px;border-radius:11px;object-fit:cover;background:var(--panel-2);border:1px solid var(--line);flex-shrink:0}
+.acct-meta{display:flex;flex-direction:column;min-width:0}
+.acct-name{font-weight:600;display:flex;align-items:center;gap:7px}
+.acct-handle{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acct-checked{color:var(--muted);font-size:11px}
+.badge-viral{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(254,44,85,.15);color:var(--accent-2);border:1px solid rgba(254,44,85,.4);display:inline-flex;align-items:center;gap:3px}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot.ok{background:var(--green);box-shadow:0 0 8px var(--green)}
+.dot.idle{background:var(--muted)}
+.dot.err{background:var(--accent-2)}
+.dot.load{background:var(--gold);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.num-big{font-family:"Sora",sans-serif;font-weight:700;font-size:16px}
+.muted{color:var(--muted)}
+.topvid{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
+.topvid img{width:38px;height:50px;border-radius:7px;object-fit:cover;background:var(--panel-2);flex-shrink:0}
+.topvid-info{display:flex;flex-direction:column;min-width:0}
+.topvid-views{color:var(--accent);font-weight:600;display:flex;align-items:center;gap:4px}
+.topvid-title{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.row-actions{display:flex;gap:6px;justify-content:center}
+.mini-btn{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);cursor:pointer;font-size:14px;transition:.15s;display:grid;place-items:center}
+.mini-btn:hover{border-color:var(--accent);color:var(--accent)}
+.mini-btn.del:hover{border-color:var(--accent-2);color:var(--accent-2)}
+
+.empty{padding:40px 24px;text-align:center;color:var(--muted);font-size:14px}
+.empty h3{color:var(--text);font-family:"Sora",sans-serif;margin-bottom:18px}
+.steps{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.step{display:flex;align-items:center;gap:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:12px 16px;max-width:230px;text-align:left}
+.step-n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:#04121a;font-weight:700;flex-shrink:0;font-family:"Space Mono",monospace}
+.step b{color:var(--text)}
+.hidden{display:none !important}
+.foot{margin-top:18px;color:var(--muted);font-size:12px;text-align:center}
+
+.modal{position:fixed;inset:0;background:rgba(4,5,9,.72);backdrop-filter:blur(4px);display:grid;place-items:center;z-index:50;padding:20px}
+.modal-card{width:100%;max-width:520px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:var(--shadow)}
+.modal-card h3{font-family:"Sora",sans-serif;font-size:19px;margin-bottom:6px}
+.modal-sub{color:var(--muted);font-size:13px;margin-bottom:14px}
+.modal-card textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:12px;color:var(--text);padding:13px;font-family:"Space Mono",monospace;font-size:13px;resize:vertical;outline:none}
+.modal-card textarea:focus{border-color:var(--accent)}
+.field{display:flex;flex-direction:column;gap:7px;margin-bottom:16px;font-size:14px}
+.field input[type=number],.field input[type=text]{background:var(--bg);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:11px;font-family:inherit;outline:none}
+.field input:focus{border-color:var(--accent)}
+.field.toggle{flex-direction:row;align-items:center;justify-content:space-between}
+.field.toggle input{width:20px;height:20px;accent-color:var(--accent)}
+.note{font-size:12px;color:var(--gold);background:rgba(255,206,69,.08);border:1px solid rgba(255,206,69,.25);border-radius:10px;padding:10px 12px;margin-bottom:16px}
+.test-out{display:none;font-size:12px;border-radius:10px;padding:9px 11px;margin-bottom:14px;background:var(--bg);border:1px solid var(--line);color:var(--muted);word-break:break-word}
+.test-out.ok{color:var(--green);border-color:rgba(55,214,122,.4)}
+.test-out.err{color:var(--accent-2);border-color:rgba(254,44,85,.4)}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px}
+@media(max-width:820px){.stats{grid-template-columns:repeat(2,1fr)}.grid td.hide-sm,.grid th.hide-sm{display:none}}
+@media(max-width:600px){.col-num,.grid td:nth-child(5),.grid th:nth-child(5){display:none}}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">▶</div>
+    <div><h1>View Tracker</h1><p class="sub">Track views across many TikTok accounts at once</p></div>
+  </div>
+  <div class="topbar-actions">
+    <span id="auto-pill" class="auto-pill hidden">Auto: <b id="auto-label">off</b></span>
+    <span id="mode-badge" class="mode-badge demo">DEMO MODE</span>
+    <button id="btn-settings" class="icon-btn" title="Settings">⚙</button>
+  </div>
+</header>
+
+<section class="stats">
+  <div class="stat-card"><span class="stat-label">Total accounts</span><span class="stat-value" id="stat-accounts">0</span></div>
+  <div class="stat-card"><span class="stat-label">Total views (24h)</span><span class="stat-value" id="stat-views">0</span></div>
+  <div class="stat-card viral"><span class="stat-label">🔥 Viral today</span><span class="stat-value" id="stat-viral">0</span></div>
+  <div class="stat-card"><span class="stat-label">Last updated</span><span class="stat-value sm" id="stat-updated">—</span></div>
+</section>
+
+<section class="toolbar">
+  <div class="add-row">
+    <div class="input-wrap"><span class="at">@</span><input id="input-username" type="text" placeholder="Enter username (no @ needed)" autocomplete="off" /></div>
+    <button id="btn-add" class="btn primary">+ Add</button>
+    <button id="btn-bulk" class="btn ghost">Bulk add</button>
+  </div>
+  <div class="actions-row">
+    <input id="search" class="search" type="text" placeholder="🔍 Search accounts..." />
+    <select id="sort" class="select">
+      <option value="views24">Sort: Views 24h (high → low)</option>
+      <option value="viewsTotal">Sort: Total views (high → low)</option>
+      <option value="top">Sort: Top video (high → low)</option>
+      <option value="name">Sort: Name (A → Z)</option>
+    </select>
+    <button id="btn-checkall" class="btn accent">🔄 Check All</button>
+  </div>
+</section>
+
+<div id="demo-note" class="note" style="margin-bottom:14px">⚠️ <b>Demo mode:</b> numbers are random samples and will NOT match real TikTok. For REAL views with no key/card: open ⚙ Settings → Data source → <b>Free — tikwm.com</b>.</div>
+
+<div id="progress" class="progress hidden">
+  <div class="progress-bar"><span id="progress-fill"></span></div>
+  <span id="progress-text" class="progress-text"></span>
+</div>
+
+<section class="table-wrap">
+  <table class="grid">
+    <thead>
+      <tr>
+        <th class="col-num">Rank</th>
+        <th>Account</th>
+        <th class="num">Views (24h)</th>
+        <th class="num hide-sm">Total views</th>
+        <th class="num">Videos</th>
+        <th>Top Video</th>
+        <th class="col-act">Action</th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <div id="empty" class="empty">
+    <h3>Get started in 3 steps</h3>
+    <div class="steps">
+      <div class="step"><span class="step-n">1</span><span>Add accounts by <b>@username</b>, or use <b>Bulk add</b> for 500–1000 at once.</span></div>
+      <div class="step"><span class="step-n">2</span><span>Press <b>Check All</b> to fetch the latest views for every account.</span></div>
+      <div class="step"><span class="step-n">3</span><span>The list ranks itself — <b>#1 = most viral</b>. 🔥 badges flag explosive accounts.</span></div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot"><span>Data is saved in this browser (localStorage). "Views 24h" is calculated from your check ~24h ago.</span></footer>
+
+<div id="modal-bulk" class="modal hidden">
+  <div class="modal-card">
+    <h3>Bulk add usernames</h3>
+    <p class="modal-sub">One username per line (no @ needed). Duplicates are skipped automatically.</p>
+    <textarea id="bulk-text" rows="10" placeholder="nannie.schmitt7&#10;moto_kh_official&#10;street_rider99&#10;km_creator01"></textarea>
+    <div class="modal-actions">
+      <button id="bulk-cancel" class="btn ghost">Cancel</button>
+      <button id="bulk-save" class="btn primary">Add all</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-settings" class="modal hidden">
+  <div class="modal-card">
+    <h3>Settings</h3>
+    <label class="field"><span>Viral threshold (24h views above this = 🔥)</span><input id="set-threshold" type="number" min="0" step="1000" /></label>
+    <label class="field"><span>Auto-refresh every (minutes, 0 = off)</span><input id="set-auto" type="number" min="0" step="5" /></label>
+    <label class="field"><span>Delay between accounts (ms — raise if rate limited)</span><input id="set-delay" type="number" min="0" step="100" /></label>
+    <label class="field"><span>Data source</span>
+      <select id="set-source" class="select" style="width:100%">
+        <option value="demo">Demo — sample numbers (no setup)</option>
+        <option value="free">Free — tikwm.com (real data, no key, no card)</option>
+        <option value="rapid">RapidAPI — paste your key (real data)</option>
+      </select>
+    </label>
+    <label class="field"><span>RapidAPI Key — only for RapidAPI source</span><input id="set-key" type="text" placeholder="x-rapidapi-key..." autocomplete="off" /></label>
+    <label class="field"><span>RapidAPI Host</span><input id="set-host" type="text" placeholder="tiktok-scraper7.p.rapidapi.com" /></label>
+    <p class="note">Free (tikwm.com) needs no key and no card. If your browser blocks it (CORS), deploy with the included Netlify function — it proxies tikwm for free too. RapidAPI source needs a key. Keys are stored only in this browser.</p>
+    <div id="test-out" class="test-out"></div>
+    <div class="modal-actions">
+      <button id="set-test" class="btn ghost">Test key</button>
+      <button id="set-export" class="btn ghost">Export list</button>
+      <button id="set-close" class="btn primary">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const LS_ACCOUNTS='vt_accounts',LS_SNAPSHOTS='vt_snapshots',LS_SETTINGS='vt_settings';
+const DEFAULT_SETTINGS={demo:true,source:'demo',threshold:100000,delay:800,autoMin:0,apiKey:'',apiHost:'tiktok-scraper7.p.rapidapi.com'};
+function load(k,fb){try{return JSON.parse(localStorage.getItem(k))??fb;}catch(e){return fb;}}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v));}
+function $(s){return document.querySelector(s);}
+function clean(u){return String(u||'').trim().replace(/^@/,'').replace(/\s+/g,'').toLowerCase();}
+function fmt(n){if(n==null||isNaN(n))return'—';if(n>=1e9)return(n/1e9).toFixed(1).replace(/\.0$/,'')+'B';if(n>=1e6)return(n/1e6).toFixed(1).replace(/\.0$/,'')+'M';if(n>=1e3)return(n/1e3).toFixed(1).replace(/\.0$/,'')+'K';return String(n);}
+function timeAgo(ts){if(!ts)return'—';const s=Math.floor((Date.now()-ts)/1000);if(s<60)return s+'s ago';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';}
+
+let accounts=load(LS_ACCOUNTS,[]);
+let snapshots=load(LS_SNAPSHOTS,{});
+let settings=Object.assign({},DEFAULT_SETTINGS,load(LS_SETTINGS,{}));
+if(!settings.source)settings.source=settings.demo===false?(settings.apiKey?'rapid':'free'):'demo';
+let busy=false,autoTimer=null;
+const statusMap={};
+
+function lastSnap(u){const a=snapshots[u];return a&&a.length?a[a.length-1]:null;}
+function snap24hAgo(u){const a=snapshots[u];if(!a||a.length<2)return null;const cutoff=Date.now()-864e5;let best=null;for(const s of a){if(s.ts<=cutoff)best=s;}return best||a[0];}
+function views24h(u){const cur=lastSnap(u);if(!cur)return null;const old=snap24hAgo(u);if(!old||old.ts===cur.ts)return null;return Math.max(0,cur.total-old.total);}
+function pushSnap(u,d){if(!snapshots[u])snapshots[u]=[];snapshots[u].push({ts:Date.now(),total:d.totalViews,top:d.topVideo,videos:d.videoCount,follower:d.followerCount,nickname:d.nickname,avatar:d.avatar,src:settings.source});if(snapshots[u].length>60)snapshots[u]=snapshots[u].slice(-60);save(LS_SNAPSHOTS,snapshots);}
+
+function demoFetch(username){
+  const seed=[...username].reduce((a,c)=>a+c.charCodeAt(0),0);
+  const base=(seed*9173)%900000+50000;
+  const grow=Math.floor(Math.random()*40000)+(seed%5000);
+  const prev=lastSnap(username);
+  const total=(prev?prev.total:base)+grow;
+  const vids=4+(seed%18);
+  const topViews=Math.floor(total*0.6)+(seed%20000);
+  return Promise.resolve({username,nickname:username.split(/[._]/)[0].replace(/^\w/,c=>c.toUpperCase()),
+    avatar:`https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(username)}`,
+    followerCount:(seed*131)%50000+200,videoCount:vids,totalViews:total,
+    topVideo:{id:'demo'+seed,title:'Top viral clip 🔥',cover:`https://api.dicebear.com/7.x/shapes/svg?seed=${username}top`,playCount:topViews,url:`https://www.tiktok.com/@${username}`},
+    fetchedAt:Date.now()});
+}
+async function rapidGet(path){
+  const res=await fetch(`https://${settings.apiHost}${path}`,{
+    headers:{'x-rapidapi-key':settings.apiKey,'x-rapidapi-host':settings.apiHost},cache:'no-store'});
+  if(!res.ok){const t=await res.text().catch(()=>'');throw new Error(`${res.status} ${t.slice(0,80)}`);}
+  return res.json();
+}
+function normalizeClient(username,info,posts){
+  const stats=info?.data?.stats||info?.data?.user?.stats||{};
+  const user=info?.data?.user||info?.data||{};
+  const videos=posts?.data?.videos||posts?.data||posts?.videos||[];
+  let totalViews=0,top=null;
+  for(const v of videos){
+    const play=v.play_count??v.playCount??v.stats?.playCount??0;
+    totalViews+=Number(play)||0;
+    if(!top||play>top.playCount){
+      const id=v.video_id||v.aweme_id||v.id||'';
+      top={id,title:v.title||v.desc||'video',cover:v.cover||v.origin_cover||v.video?.cover||'',playCount:Number(play)||0,url:`https://www.tiktok.com/@${username}/video/${id}`};
+    }
+  }
+  return {username,nickname:user.nickname||user.unique_id||username,avatar:user.avatarThumb||user.avatar||user.avatarMedium||'',followerCount:Number(stats.followerCount??stats.follower_count??0),videoCount:Number(stats.videoCount??stats.video_count??videos.length),totalViews,topVideo:top,fetchedAt:Date.now()};
+}
+async function liveFetch(username){
+  // Path A: key entered -> call RapidAPI directly from browser (no server / no Git needed)
+  if(settings.apiKey){
+    const info=await rapidGet(`/user/info?unique_id=${encodeURIComponent(username)}`);
+    const posts=await rapidGet(`/user/posts?unique_id=${encodeURIComponent(username)}&count=35&cursor=0`);
+    return normalizeClient(username,info,posts);
+  }
+  // Path B: no key in app -> use the Netlify Function (needs env var + Git deploy)
+  const url=`/.netlify/functions/tiktok?username=${encodeURIComponent(username)}&_=${Date.now()}`;
+  const res=await fetch(url,{cache:'no-store'});
+  if(!res.ok){const t=await res.text().catch(()=>'');throw new Error(`${res.status} ${t.slice(0,120)} — paste your RapidAPI key in Settings`);}
+  return res.json();
+}
+async function tikwmJson(path){
+  const target=`https://www.tikwm.com/api${path}`;
+  const tries=[
+    `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(target)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`,
+    `https://thingproxy.freeboard.io/fetch/${target}`,
+    `https://corsproxy.io/?url=${encodeURIComponent(target)}`,
+    target
+  ];
+  let lastErr;
+  for(const url of tries){
+    try{
+      const r=await fetch(url,{cache:'no-store'});
+      if(!r.ok){lastErr=new Error('HTTP '+r.status);continue;}
+      const j=await r.json();
+      if(j&&(j.data||j.code!==undefined))return j;
+      lastErr=new Error('unexpected response');
+    }catch(e){lastErr=e;}
+  }
+  throw lastErr||new Error('all tikwm sources failed');
+}
+async function freeFetch(username){
+  // Prefer the server function (reliable, no CORS) when deployed via Git; fall back to browser proxies.
+  try{
+    const r=await fetch(`/.netlify/functions/tiktok?source=tikwm&username=${encodeURIComponent(username)}&_=${Date.now()}`,{cache:'no-store'});
+    if(r.ok){
+      const d=await r.json();
+      if(d&&!d.error&&(d.topVideo||d.totalViews>0))return d;
+    }
+  }catch(e){/* function not present (drag-drop / local) -> try proxies below */}
+  // Browser fallback via CORS proxies
+  const info=await tikwmJson(`/user/info?unique_id=${encodeURIComponent(username)}`);
+  const posts=await tikwmJson(`/user/posts?unique_id=${encodeURIComponent(username)}&count=35`);
+  const out=normalizeClient(username,info,posts);
+  if(out.topVideo||out.totalViews>0)return out;
+  throw new Error('no data (wrong username, rate-limited, or all sources blocked)');
+}
+function fetchAccount(u){
+  if(settings.source==='demo')return demoFetch(u);
+  if(settings.source==='free')return freeFetch(u);
+  return liveFetch(u);
+}
+
+function setStatus(u,s,msg){statusMap[u]={s,msg};const el=document.querySelector(`[data-dot="${u}"]`);if(el){el.className='dot '+s;el.title=msg||'';}}
+async function check(u){setStatus(u,'load');try{const d=await fetchAccount(u);pushSnap(u,d);setStatus(u,'ok');}catch(err){console.error(u,err);setStatus(u,'err',err.message);}}
+
+async function checkAll(){
+  if(busy||!accounts.length)return;
+  busy=true;const btn=$('#btn-checkall');btn.disabled=true;
+  const prog=$('#progress');prog.classList.remove('hidden');
+  for(let i=0;i<accounts.length;i++){
+    const u=accounts[i].username;
+    $('#progress-text').textContent=`${i+1} / ${accounts.length} — @${u}`;
+    $('#progress-fill').style.width=(i/accounts.length*100)+'%';
+    await check(u);render();
+    if(settings.delay>0&&i<accounts.length-1)await new Promise(r=>setTimeout(r,settings.delay));
+  }
+  $('#progress-fill').style.width='100%';
+  setTimeout(()=>prog.classList.add('hidden'),600);
+  btn.disabled=false;busy=false;render();
+}
+
+function addAccount(raw){const u=clean(raw);if(!u)return false;if(accounts.some(a=>a.username===u))return false;accounts.push({username:u});save(LS_ACCOUNTS,accounts);return true;}
+function addBulk(text){const lines=text.split(/[\n,]/).map(clean).filter(Boolean);let n=0;for(const u of lines)if(addAccount(u))n++;return n;}
+function removeAccount(u){accounts=accounts.filter(a=>a.username!==u);save(LS_ACCOUNTS,accounts);render();}
+function isViral(u){const v=views24h(u);return v!=null&&v>=settings.threshold;}
+
+function rankBadge(rank){const cls=rank===1?'r1':rank===2?'r2':rank===3?'r3':'';return `<span class="rank-badge ${cls}">${rank}</span>`;}
+
+function buildRow(a,rank){
+  const u=a.username,snap=lastSnap(u),v24=views24h(u),viral=isViral(u);
+  const st=statusMap[u]?.s||(snap?'ok':'idle');
+  const top=snap?.top;
+  const tr=document.createElement('tr');
+  if(viral)tr.classList.add('viral-row');
+  const topHtml=top?`<a class="topvid" href="${top.url||('https://www.tiktok.com/@'+u)}" target="_blank" rel="noopener"><img src="${top.cover||''}" alt="" onerror="this.style.visibility='hidden'"/><span class="topvid-info"><span class="topvid-views">▶ ${fmt(top.playCount)}</span><span class="topvid-title">${(top.title||'').replace(/</g,'&lt;')||'video'}</span></span></a>`:'<span class="muted">—</span>';
+  tr.innerHTML=`
+    <td class="rank">${rankBadge(rank)}</td>
+    <td><div class="acct">
+      <span class="dot ${st}" data-dot="${u}" title="${statusMap[u]?.msg||''}"></span>
+      <img class="avatar" src="${snap?.avatar||''}" alt="" onerror="this.src='https://api.dicebear.com/7.x/shapes/svg?seed=${u}'"/>
+      <span class="acct-meta">
+        <span class="acct-name">${snap?.nickname||u} ${viral?'<span class="badge-viral">🔥 Viral</span>':''}</span>
+        <span class="acct-handle">@${u}</span>
+        <span class="acct-checked">${snap?(snap.src&&snap.src==='demo'&&settings.source!=='demo'?'⚠️ demo data — re-check':'checked '+timeAgo(snap.ts)):'not checked yet'}</span>
+      </span>
+    </div></td>
+    <td class="num"><span class="num-big" style="color:${viral?'var(--accent-2)':'inherit'}">${v24!=null?fmt(v24):'<span class="muted">awaiting 24h</span>'}</span></td>
+    <td class="num hide-sm"><span class="num-big">${snap?fmt(snap.total):'—'}</span></td>
+    <td class="num">${snap?snap.videos:'—'}</td>
+    <td>${topHtml}</td>
+    <td class="col-act"><div class="row-actions">
+      <button class="mini-btn" title="Check this account" data-check="${u}">🔄</button>
+      <button class="mini-btn del" title="Remove" data-del="${u}">🗑</button>
+    </div></td>`;
+  return tr;
+}
+
+function sortedAccounts(){
+  const q=clean($('#search').value);
+  let list=accounts.filter(a=>!q||a.username.includes(q)||(lastSnap(a.username)?.nickname||'').toLowerCase().includes(q));
+  const mode=$('#sort').value;
+  const key=a=>{const s=lastSnap(a.username);if(mode==='views24')return views24h(a.username)||-1;if(mode==='viewsTotal')return s?.total||-1;if(mode==='top')return s?.top?.playCount||-1;return 0;};
+  if(mode==='name')list.sort((a,b)=>a.username.localeCompare(b.username));
+  else list.sort((a,b)=>key(b)-key(a));
+  return list;
+}
+
+function render(){
+  const tbody=$('#rows');tbody.innerHTML='';
+  const list=sortedAccounts();
+  $('#empty').classList.toggle('hidden',accounts.length>0);
+  list.forEach((a,i)=>tbody.appendChild(buildRow(a,i+1)));
+  let totalV=0,viral=0,last=0;
+  for(const a of accounts){const v=views24h(a.username);if(v)totalV+=v;if(isViral(a.username))viral++;const s=lastSnap(a.username);if(s&&s.ts>last)last=s.ts;}
+  $('#stat-accounts').textContent=accounts.length;
+  $('#stat-views').textContent=fmt(totalV)||'0';
+  $('#stat-viral').textContent=viral;
+  $('#stat-updated').textContent=timeAgo(last);
+  $('#mode-badge').textContent=settings.source==='demo'?'DEMO MODE':(settings.source==='free'?'FREE • tikwm':'LIVE • RapidAPI');
+  $('#mode-badge').className='mode-badge '+(settings.source==='demo'?'demo':'live');
+  $('#demo-note').classList.toggle('hidden',settings.source!=='demo');
+  const ap=$('#auto-pill');
+  if(settings.autoMin>0){ap.classList.remove('hidden');$('#auto-label').textContent='every '+settings.autoMin+'m';}
+  else ap.classList.add('hidden');
+}
+
+function setupAuto(){
+  if(autoTimer){clearInterval(autoTimer);autoTimer=null;}
+  if(settings.autoMin>0)autoTimer=setInterval(()=>{if(!busy)checkAll();},settings.autoMin*60000);
+}
+
+$('#btn-add').onclick=()=>{const inp=$('#input-username');if(addAccount(inp.value)){inp.value='';render();}else{inp.value='';inp.placeholder='Already added or invalid — try again';}};
+$('#input-username').addEventListener('keydown',e=>{if(e.key==='Enter')$('#btn-add').click();});
+$('#btn-checkall').onclick=checkAll;
+$('#search').oninput=render;
+$('#sort').onchange=render;
+$('#rows').addEventListener('click',async e=>{const c=e.target.closest('[data-check]'),d=e.target.closest('[data-del]');if(c){await check(c.dataset.check);render();}if(d){if(confirm(`Remove @${d.dataset.del}?`))removeAccount(d.dataset.del);}});
+$('#btn-bulk').onclick=()=>$('#modal-bulk').classList.remove('hidden');
+$('#bulk-cancel').onclick=()=>$('#modal-bulk').classList.add('hidden');
+$('#bulk-save').onclick=()=>{const n=addBulk($('#bulk-text').value);$('#bulk-text').value='';$('#modal-bulk').classList.add('hidden');render();alert(`Added ${n} new account(s).`);};
+$('#btn-settings').onclick=()=>{$('#set-threshold').value=settings.threshold;$('#set-source').value=settings.source;$('#set-delay').value=settings.delay;$('#set-auto').value=settings.autoMin;$('#set-key').value=settings.apiKey||'';$('#set-host').value=settings.apiHost||'tiktok-scraper7.p.rapidapi.com';$('#modal-settings').classList.remove('hidden');};
+$('#set-close').onclick=()=>{settings.threshold=+$('#set-threshold').value||0;settings.source=$('#set-source').value;settings.demo=(settings.source==='demo');settings.delay=Math.max(0,+$('#set-delay').value||0);settings.autoMin=Math.max(0,+$('#set-auto').value||0);settings.apiKey=$('#set-key').value.trim();settings.apiHost=$('#set-host').value.trim()||'tiktok-scraper7.p.rapidapi.com';save(LS_SETTINGS,settings);$('#modal-settings').classList.add('hidden');setupAuto();render();};
+$('#set-export').onclick=()=>{const blob=new Blob([accounts.map(a=>a.username).join('\n')],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='tiktok-accounts.txt';a.click();};
+$('#set-test').onclick=async()=>{
+  const out=$('#test-out');out.style.display='block';out.className='test-out';
+  const source=$('#set-source').value;
+  const u=(accounts[0]&&accounts[0].username)||'tiktok';
+  out.textContent='Testing @'+u+' ...';
+  try{
+    if(source==='free'){
+      try{
+        const d=await freeFetch(u);
+        if(d.topVideo||d.totalViews>0){out.textContent='✅ Free source works! @'+u+' — top video '+fmt(d.topVideo?d.topVideo.playCount:0)+' views, '+d.videoCount+' videos. Press Save, then Check All.';out.className='test-out ok';}
+        else{out.textContent='⚠️ Connected but no videos for @'+u+'.';out.className='test-out err';}
+      }catch(e){out.textContent='❌ '+e.message+' — tikwm may be rate-limited; wait a minute and retry.';out.className='test-out err';}
+      return;
+    }
+    const key=$('#set-key').value.trim();
+    const host=$('#set-host').value.trim()||'tiktok-scraper7.p.rapidapi.com';
+    if(!key){out.textContent='Paste your RapidAPI key first (or pick Free source).';out.className='test-out err';return;}
+    const r=await fetch(`https://${host}/user/posts?unique_id=${encodeURIComponent(u)}&count=5&cursor=0`,{headers:{'x-rapidapi-key':key,'x-rapidapi-host':host},cache:'no-store'});
+    const txt=await r.text();
+    if(!r.ok){out.textContent='❌ '+r.status+': '+txt.slice(0,160);out.className='test-out err';return;}
+    let j;try{j=JSON.parse(txt);}catch(e){out.textContent='⚠️ Response not JSON: '+txt.slice(0,120);out.className='test-out err';return;}
+    const vids=j?.data?.videos||j?.data||j?.videos||[];
+    if(Array.isArray(vids)&&vids.length){out.textContent='✅ Works! Got '+vids.length+' videos for @'+u+'. Save and Check All.';out.className='test-out ok';}
+    else{out.textContent='⚠️ Connected, but no videos found — provider may use different fields. Tell me the provider.';out.className='test-out err';}
+  }catch(err){
+    out.textContent='❌ '+err.message+' — could be a CORS block. If so, deploy with the Netlify function (server route).';
+    out.className='test-out err';
+  }
+};
+document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.add('hidden');}));
+
+setupAuto();render();
+setInterval(render,60000); // refresh "time ago" labels
+</script>
+</body>
+</html>
